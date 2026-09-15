@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Push-up Tracker - Cloud</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 500px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        .login-screen {
+            display: none;
+        }
+
+        .login-screen.active {
+            display: block;
+        }
+
+        .tracker-screen {
+            display: none;
+        }
+
+        .tracker-screen.active {
+            display: block;
+        }
+
+        .dashboard-screen {
+            display: none;
+        }
+
+        .dashboard-screen.active {
+            display: block;
+        }
+
+        h1 {
+            color: #667eea;
+            margin-bottom: 30px;
+            text-align: center;
+            font-size: 28px;
+        }
+
+        h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 24px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus,
+        input[type="password"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .sets-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            margin: 30px 0;
+        }
+
+        .set-box {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 20px;
+            transition: all 0.3s;
+            background: white;
+        }
+
+        .set-box:hover {
+            border-color: #667eea;
+        }
+
+        .set-box.completed {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: #667eea;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.3s;
+        }
+
+        .stats {
+            background: #f5f5f5;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+            font-size: 16px;
+        }
+
+        .stat-label {
+            color: #666;
+        }
+
+        .stat-value {
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .history {
+            margin-top: 30px;
+        }
+
+        .history-item {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .history-date {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .history-details {
+            font-size: 14px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .streak-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            margin-top: 15px;
+            text-align: center;
+            width: 100%;
+        }
+
+        .logout-btn {
+            background: #e74c3c;
+            margin-top: 20px;
+        }
+
+        .logout-btn:hover {
+            box-shadow: 0 10px 20px rgba(231, 76, 60, 0.4);
+        }
+
+        .error {
+            background: #ffe6e6;
+            color: #c0392b;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .success {
+            background: #e6ffe6;
+            color: #27ae60;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .loading {
+            text-align: center;
+            color: #667eea;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Login Screen -->
+        <div class="login-screen active">
+            <h1>💪 Push-up Tracker</h1>
+            <div id="loginError"></div>
+            <div class="input-group">
+                <label>Username</label>
+                <input type="text" id="username" placeholder="Enter username">
+            </div>
+            <div class="input-group">
+                <label>Password</label>
+                <input type="password" id="password" placeholder="Enter password">
+            </div>
+            <button onclick="login()">Login</button>
+            <p style="text-align: center; margin-top: 20px; color: #666; font-size: 14px;">
+                Demo: Username <strong>1</strong>, Password <strong>1</strong>
+            </p>
+        </div>
+
+        <!-- Tracker Screen -->
+        <div class="tracker-screen">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h2>Today's Workout</h2>
+                <button onclick="logout()" style="width: auto; padding: 8px 16px; font-size: 14px;">Logout</button>
+            </div>
+
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+            </div>
+
+            <p style="text-align: center; color: #666; margin-bottom: 20px;">
+                <span id="completedSets">0</span> / 25 Push-ups Complete
+            </p>
+
+            <div class="sets-grid" id="setsGrid"></div>
+
+            <div class="stats">
+                <div class="stat-row">
+                    <span class="stat-label">Total Push-ups:</span>
+                    <span class="stat-value" id="totalCount">0</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Duration:</span>
+                    <span class="stat-value" id="duration">0s</span>
+                </div>
+            </div>
+
+            <button onclick="completeWorkout()" id="completeBtn" style="background: #27ae60;">Complete Workout</button>
+
+            <div class="history">
+                <h3 style="color: #333; margin-bottom: 15px;">Recent Workouts</h3>
+                <div id="historyList"></div>
+            </div>
+
+            <div class="streak-badge" id="streakBadge">Streak: 0 days 🔥</div>
+        </div>
+
+        <!-- Dashboard Screen -->
+        <div class="dashboard-screen">
+            <h2>Workout Complete! 🎉</h2>
+            <div class="stats">
+                <div class="stat-row">
+                    <span class="stat-label">Total Push-ups:</span>
+                    <span class="stat-value" id="dashTotalCount">25</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Duration:</span>
+                    <span class="stat-value" id="dashDuration">5m 30s</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Completed At:</span>
+                    <span class="stat-value" id="dashTime">12:45 PM</span>
+                </div>
+            </div>
+
+            <div class="streak-badge" id="dashStreakBadge">Streak: 5 days 🔥</div>
+
+            <button onclick="goBack()" style="margin-top: 20px;">Back to Tracker</button>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = window.location.origin;
+        let currentUsername = '';
+        let sets = Array(5).fill(0).map(() => 0);
+        let startTime = null;
+        let timerInterval = null;
+
+        // Initialize sets grid
+        function initSetsGrid() {
+            const grid = document.getElementById('setsGrid');
+            grid.innerHTML = '';
+            sets.forEach((completed, index) => {
+                const box = document.createElement('div');
+                box.className = 'set-box' + (completed ? ' completed' : '');
+                box.textContent = index + 1;
+                box.onclick = () => toggleSet(index);
+                grid.appendChild(box);
+            });
+        }
+
+        async function login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const errorDiv = document.getElementById('loginError');
+
+            if (!username || !password) {
+                errorDiv.innerHTML = '<div class="error">Please enter username and password</div>';
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/api/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    currentUsername = username;
+                    showTrackerScreen();
+                    loadWorkouts();
+                } else {
+                    errorDiv.innerHTML = '<div class="error">Invalid credentials. Try username: 1, password: 1</div>';
+                }
+            } catch (error) {
+                errorDiv.innerHTML = '<div class="error">Error connecting to server</div>';
+            }
+        }
+
+        function toggleSet(index) {
+            sets[index] = sets[index] ? 0 : 1;
+            initSetsGrid();
+            updateProgress();
+            if (!startTime) startTime = Date.now();
+        }
+
+        function updateProgress() {
+            const completed = sets.filter(s => s).length;
+            const total = 25;
+            const percentage = (completed / total) * 100;
+            document.getElementById('progressFill').style.width = percentage + '%';
+            document.getElementById('completedSets').textContent = completed;
+            document.getElementById('totalCount').textContent = completed;
+
+            if (timerInterval) clearInterval(timerInterval);
+            if (startTime && completed > 0) {
+                timerInterval = setInterval(() => {
+                    const elapsed = Math.floor((Date.now() - startTime) / 1000);
+                    document.getElementById('duration').textContent = elapsed + 's';
+                }, 1000);
+            }
+        }
+
+        async function completeWorkout() {
+            const completed = sets.filter(s => s).length;
+            if (completed === 0) {
+                alert('Complete at least some push-ups first!');
+                return;
+            }
+
+            const duration = Math.floor((Date.now() - startTime) / 1000);
+            const today = new Date().toISOString().split('T')[0];
+            const times = [];
+            let time = 0;
+            for (let i = 0; i < sets.length; i++) {
+                if (sets[i]) time += Math.floor(Math.random() * 20) + 30;
+                times.push(time);
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/api/workouts`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        username: currentUsername,
+                        date: today,
+                        sets: sets.filter(s => s).length,
+                        times: times,
+                        duration: duration
+                    })
+                });
+
+                if (response.ok) {
+                    showDashboard(completed, duration);
+                    sets = Array(5).fill(0);
+                    startTime = null;
+                    clearInterval(timerInterval);
+                } else {
+                    alert('Error saving workout');
+                }
+            } catch (error) {
+                alert('Error saving to cloud');
+            }
+        }
+
+        async function loadWorkouts() {
+            try {
+                const response = await fetch(`${API_URL}/api/workouts/${currentUsername}`);
+                const workouts = await response.json();
+
+                const historyList = document.getElementById('historyList');
+                historyList.innerHTML = '';
+
+                if (workouts && workouts.length > 0) {
+                    workouts.slice(0, 5).forEach(workout => {
+                        const date = new Date(workout.date).toLocaleDateString('en-US', { 
+                            month: 'short', 
+                            day: 'numeric',
+                            year: 'numeric'
+                        });
+                        const div = document.createElement('div');
+                        div.className = 'history-item';
+                        div.innerHTML = `
+                            <div class="history-date">${date}</div>
+                            <div class="history-details">${workout.sets} sets • ${workout.duration}s</div>
+                        `;
+                        historyList.appendChild(div);
+                    });
+                } else {
+                    historyList.innerHTML = '<p style="color: #999; text-align: center;">No workouts yet. Start tracking!</p>';
+                }
+
+                loadStreak();
+            } catch (error) {
+                console.error('Error loading workouts:', error);
+            }
+        }
+
+        async function loadStreak() {
+            try {
+                const response = await fetch(`${API_URL}/api/streak/${currentUsername}`);
+                const data = await response.json();
+                document.getElementById('streakBadge').textContent = `Streak: ${data.streak} days 🔥`;
+            } catch (error) {
+                console.error('Error loading streak:', error);
+            }
+        }
+
+        function showTrackerScreen() {
+            document.querySelector('.login-screen').classList.remove('active');
+            document.querySelector('.tracker-screen').classList.add('active');
+            document.querySelector('.dashboard-screen').classList.remove('active');
+            initSetsGrid();
+            startTime = Date.now();
+        }
+
+        function showDashboard(total, duration) {
+            document.querySelector('.tracker-screen').classList.remove('active');
+            document.querySelector('.dashboard-screen').classList.add('active');
+            
+            const mins = Math.floor(duration / 60);
+            const secs = duration % 60;
+            const timeStr = mins > 0 ? `${mins}m ${secs}s` : `${secs}s`;
+
+            document.getElementById('dashTotalCount').textContent = total;
+            document.getElementById('dashDuration').textContent = timeStr;
+            document.getElementById('dashTime').textContent = new Date().toLocaleTimeString();
+            
+            loadStreak();
+            document.getElementById('dashStreakBadge').innerHTML = `Streak: <span id="dashStreakNum">0</span> days 🔥`;
+            
+            fetch(`${API_URL}/api/streak/${currentUsername}`)
+                .then(r => r.json())
+                .then(d => {
+                    document.getElementById('dashStreakNum').textContent = d.streak;
+                });
+        }
+
+        function goBack() {
+            showTrackerScreen();
+            loadWorkouts();
+        }
+
+        function logout() {
+            currentUsername = '';
+            sets = Array(5).fill(0);
+            startTime = null;
+            clearInterval(timerInterval);
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+            document.getElementById('loginError').innerHTML = '';
+            document.querySelector('.login-screen').classList.add('active');
+            document.querySelector('.tracker-screen').classList.remove('active');
+            document.querySelector('.dashboard-screen').classList.remove('active');
+        }
+
+        // Initial setup
+        initSetsGrid();
+    </script>
+</body>
+</html>
